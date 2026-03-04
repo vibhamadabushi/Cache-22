@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache 22 | Demo Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; line-height: 1.6; padding-top: 50px; overflow-x: hidden; }
+
+        #demo-controls {
+            position: fixed; top: 0; left: 0; right: 0; background: #ef4444; color: white;
+            padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;
+            z-index: 100000; font-family: monospace; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .demo-title { font-size: 16px; font-weight: 800; letter-spacing: 1px; }
+        .demo-btns button {
+            background: white; color: #ef4444; border: none; padding: 6px 16px; margin-left: 10px;
+            border-radius: 4px; cursor: pointer; font-weight: bold; font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        .demo-btns button:hover { background: #fee2e2; transform: translateY(-1px); }
+
+        #privacy-report {
+            position: fixed; top: 80px; right: 20px; width: 340px; background: #0f172a; color: white;
+            border-radius: 12px; border: 1px solid #1e293b; padding: 20px; z-index: 100000;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6); 
+            transform: translateX(120%); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: 'Inter', sans-serif;
+        }
+        #privacy-report.show { transform: translateX(0); }
+        .report-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #1e293b; padding-bottom: 12px; }
+        .report-header span { color: #10b981; font-weight: 800; font-size: 16px; letter-spacing: 0.5px; }
+        .report-content { font-size: 14px; color: #94a3b8; line-height: 1.6; }
+        .report-content strong { color: #f8fafc; font-weight: 700; }
+        .threat-level { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; }
+        .threat-high { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
+        .threat-med { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
+        .threat-low { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
+
+        .demo-site { display: none; }
+        .demo-site.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        main { max-width: 1200px; margin: 40px auto; padding: 0 5%; }
+        .grid-header { font-size: 24px; font-weight: 700; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; }
+        .article-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .card-img { height: 180px; background: #e2e8f0; background-size: cover; background-position: center; }
+        .card-content { padding: 20px; }
+        .btn { padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: background 0.2s; }
+
+        .site-news header { background-color: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; }
+        .site-news .logo { font-size: 24px; font-weight: 800; color: #2563eb; letter-spacing: -1px; }
+        .site-news .hero { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border-radius: 16px; padding: 60px; margin-bottom: 40px; }
+        .site-news .hero h1 { font-size: 48px; font-weight: 800; margin-bottom: 20px; }
+        #cookie-overlay-news { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9998; backdrop-filter: blur(4px); }
+        #cookie-modal-news { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 700px; background: #ffffff; border-radius: 12px; padding: 30px; z-index: 9999; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 20px; }
+
+        .site-shop { background: #fafafa; }
+        .site-shop header { background-color: #000000; color: white; padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; }
+        .site-shop .logo { font-size: 26px; font-weight: 800; font-family: serif; font-style: italic; }
+        .site-shop .hero { background: url('https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=1200&auto=format&fit=crop') center/cover; color: white; border-radius: 0; padding: 100px 60px; margin-bottom: 40px; text-align: center; }
+        .site-shop .hero h1 { font-size: 56px; font-weight: 800; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        #cookie-modal-shop { position: fixed; bottom: 0; left: 0; width: 100%; background: #ffffff; padding: 20px 5%; z-index: 9999; box-shadow: 0 -10px 30px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; border-top: 4px solid #000; }
+
+        .site-bank header { background-color: #0f4c81; color: white; padding: 20px 5%; display: flex; justify-content: space-between; align-items: center; }
+        .site-bank .logo { font-size: 24px; font-weight: 800; letter-spacing: 2px; }
+        .site-bank .hero { background: #f1f5f9; color: #0f4c81; border-radius: 8px; padding: 60px; margin-bottom: 40px; border: 1px solid #cbd5e1; }
+        .site-bank .hero h1 { font-size: 40px; font-weight: 800; }
+        #cookie-modal-bank { position: fixed; bottom: 20px; left: 20px; width: 350px; background: #ffffff; border-radius: 8px; padding: 25px; z-index: 9999; box-shadow: 0 15px 35px rgba(15, 76, 129, 0.2); border: 1px solid #e2e8f0; }
+
+    </style>
+</head>
+<body>
+
+    <div id="demo-controls">
+        <div class="demo-title">🔴 CACHE 22 DEMO HUB</div>
+        <div class="demo-btns">
+            <span style="font-family: sans-serif; font-size: 13px; margin-right: 10px;">Switch Test Site:</span>
+            <button onclick="switchSite('news')">1. News Site (Modal)</button>
+            <button onclick="switchSite('shop')">2. E-Commerce (Bar)</button>
+            <button onclick="switchSite('bank')">3. Banking (Toast)</button>
+        </div>
+    </div>
+
+    <div id="privacy-report">
+        <div class="report-header">
+            <div style="font-size: 24px;">🛡️</div>
+            <span>Cache 22 Privacy Report</span>
+        </div>
+        <div id="report-text" class="report-content">
+        </div>
+    </div>
+
+    <div id="site-news" class="demo-site site-news active">
+        <header>
+            <div class="logo">TechNova</div>
+            <div style="color: #64748b; font-weight: 500; font-size: 15px; display: flex; gap: 20px;">
+                <span>Latest</span><span>Cybersecurity</span><span>Reviews</span>
+            </div>
+        </header>
+        <main>
+            <div class="hero">
+                <h1 style="color: white;">Cache 22 team revolutionizes digital privacy</h1>
+                <p style="color: #94a3b8; font-size: 18px;">The developers behind the zero-click privacy agent have stunned judges by instantly eliminating tracking friction across the web.</p>
+            </div>
+            <h2 class="grid-header">Trending Stories</h2>
+            <div class="article-grid">
+                <div class="card"><div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=600&auto=format&fit=crop');"></div><div class="card-content"><h3>Local AI Models</h3><p>New breakthroughs allow LLMs to run offline.</p></div></div>
+                <div class="card"><div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1621416894569-0f39ed31d247?q=80&w=600&auto=format&fit=crop');"></div><div class="card-content"><h3>Data Vaults</h3><p>Users are taking back control of their private data.</p></div></div>
+            </div>
+        </main>
+        
+        <div class="cookie-wrapper" id="cookie-overlay-news"></div>
+        <div class="cookie-wrapper" id="cookie-modal-news">
+            <div style="display: flex; gap: 20px;">
+                <div style="font-size: 32px;">🍪</div>
+                <div>
+                    <h2 style="font-size: 18px; margin-bottom: 8px;">We value your privacy</h2>
+                    <p style="font-size: 14px; color: #64748b;">We use tracking cookies to personalize your news feed and share data with advertising partners.</p>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 15px;">
+                <button class="btn" style="background: #f1f5f9; color: #475569;" onclick="hideBanner('news')">Necessary cookies only</button>
+                <button class="btn" style="background: #2563eb; color: white;" onclick="hideBanner('news')">Accept All</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="site-shop" class="demo-site site-shop">
+        <header>
+            <div class="logo">LuxeMart</div>
+            <div style="font-size: 14px; letter-spacing: 1px;">WOMEN | MEN | SALE | CART (0)</div>
+        </header>
+        <main>
+            <div class="hero">
+                <h1 style="color: white;">SUMMER COLLECTION</h1>
+            </div>
+            <h2 class="grid-header" style="border-color: #000;">New Arrivals</h2>
+            <div class="article-grid">
+                <div class="card"><div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=600&auto=format&fit=crop');"></div><div class="card-content"><h3>Classic Tee</h3><p>$29.99</p></div></div>
+                <div class="card"><div class="card-img" style="background-image: url('https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=600&auto=format&fit=crop');"></div><div class="card-content"><h3>Leather Boots</h3><p>$149.99</p></div></div>
+            </div>
+        </main>
+
+        <div class="cookie-wrapper" id="cookie-modal-shop">
+            <div style="max-width: 600px;">
+                <h2 style="font-size: 16px; margin-bottom: 5px;">Shopping Preferences</h2>
+                <p style="font-size: 13px; color: #64748b;">LuxeMart uses cookies to track your shopping habits across other websites to show you targeted fashion ads.</p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" style="background: transparent; border: 1px solid #000; color: #000;" onclick="hideBanner('shop')">Decline</button>
+                <button class="btn" style="background: #000; color: white;" onclick="hideBanner('shop')">Accept</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="site-bank" class="demo-site site-bank">
+        <header>
+            <div class="logo">VAULTFI</div>
+            <div style="font-size: 14px; font-weight: 500;">Personal Banking | Wealth Management | Log In</div>
+        </header>
+        <main>
+            <div class="hero">
+                <h1 style="color: #0f4c81;">Secure your financial future.</h1>
+                <p style="margin-top: 15px; font-size: 18px;">Bank with confidence using our state-of-the-art encryption platform.</p>
+            </div>
+            <div class="article-grid">
+                <div class="card"><div class="card-content"><h3>Checking Accounts</h3><p>Zero fees. High yields.</p></div></div>
+                <div class="card"><div class="card-content"><h3>Investment Portfolio</h3><p>Grow your wealth securely.</p></div></div>
+            </div>
+        </main>
+
+        <div class="cookie-wrapper" id="cookie-modal-bank">
+            <h2 style="font-size: 16px; margin-bottom: 10px; color: #0f4c81;">Cookie Notice</h2>
+            <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">We utilize tracking technologies to measure site analytics and marketing attribution.</p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn" style="background: #0f4c81; color: white; width: 100%;" onclick="hideBanner('bank')">Accept Cookies</button>
+                <button class="btn" style="background: transparent; color: #64748b; width: 100%; text-decoration: underline; padding: 5px;" onclick="hideBanner('bank')">Reject All</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchSite(siteId) {
+            document.querySelectorAll('.demo-site').forEach(site => site.classList.remove('active'));
+            document.getElementById('privacy-report').classList.remove('show');
+            
+            document.getElementById('site-' + siteId).classList.add('active');
+            
+            document.querySelectorAll('.cookie-wrapper').forEach(banner => {
+                banner.style.display = 'flex'; 
+                if (banner.id === 'cookie-overlay-news') banner.style.display = 'block'; 
+            });
+            
+            window.scrollTo(0, 0);
+        }
+
+        function hideBanner(siteId) {
+            if(siteId === 'news') {
+                document.getElementById('cookie-overlay-news').style.display = 'none';
+                document.getElementById('cookie-modal-news').style.display = 'none';
+            } else if (siteId === 'shop') {
+                document.getElementById('cookie-modal-shop').style.display = 'none';
+            } else if (siteId === 'bank') {
+                document.getElementById('cookie-modal-bank').style.display = 'none';
+            }
+
+            const report = document.getElementById('privacy-report');
+            const reportText = document.getElementById('report-text');
+
+            if (siteId === 'news') {
+                reportText.innerHTML = `
+                    <span class="threat-level threat-med">Medium Threat</span><br>
+                    <strong>Blocked 8 Cross-Site Trackers.</strong><br><br>
+                    <em>Why rejected:</em> TechNova attempted to load third-party ad scripts to profile your reading habits. We restricted them to essential site functions only.
+                `;
+            } else if (siteId === 'shop') {
+                reportText.innerHTML = `
+                    <span class="threat-level threat-high">High Threat</span><br>
+                    <strong>Blocked 15 Marketing Trackers.</strong><br><br>
+                    <em>Why rejected:</em> LuxeMart uses aggressive retargeting. If accepted, these cookies would have tracked your shopping cart across the internet to serve you ads for the next 30 days.
+                `;
+            } else if (siteId === 'bank') {
+                reportText.innerHTML = `
+                    <span class="threat-level threat-low">Low Threat</span><br>
+                    <strong>Blocked 4 Analytics Trackers.</strong><br><br>
+                    <em>Why rejected:</em> Financial institutions often share device-fingerprinting data. We blocked non-essential analytics while keeping your banking session secure.
+                `;
+            }
+
+            report.classList.add('show');
+            setTimeout(() => { report.classList.remove('show'); }, 7000);
+        }
+    </script>
+</body>
+</html>

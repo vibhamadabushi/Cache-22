@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Cache 22",
+  "version": "1.0",
+  "description": "Zero-Click Consent Manager. Automatically rejects trackers.",
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "all_frames": true
+    }
+  ]
+}
