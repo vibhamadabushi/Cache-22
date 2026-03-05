@@ -159,7 +159,7 @@ At the same time, a **Privacy Report widget** is generated locally to explain:
 1. Clone the repository
 
 ```
-git clone https://github.com/your-username/cache-22.git
+git clone https://github.com/vibhamadabushi/cache-22.git
 ```
 
 2. Open Chrome and go to
